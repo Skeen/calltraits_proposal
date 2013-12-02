@@ -1,0 +1,203 @@
+\subsection{Interface}
+I'm open to adding more traits to the interface, assuming they are implementable
+in a pure library solution.
+
+\subsubsection{Arity}
+\begin{itemize}
+\item[(1)] Return the arity (e.g. number of arguments) for a given callable type.
+\item[(2)] Return whether the callable type has the queried number of arguments.
+\end{itemize}
+\begin{verbatim}
+// 1
+template<typename Callable, typename... Args>
+constexpr size_t arity = ...;
+
+// 2
+template <typename Callable, typename... Args>
+constexpr bool is_nullary = (arity<Callable, Args...> == 0);
+template <typename Callable, typename... Args>
+constexpr bool is_unary = (arity<Callable, Args...> == 1);
+template <typename Callable, typename... Args>
+constexpr bool is_binary = (arity<Callable, Args...> == 2);
+template <typename Callable, typename... Args>
+constexpr bool is_ternary = (arity<Callable, Args...> == 3);
+\end{verbatim}
+Note; In the case of varying arguments (C-style ellipsis), std::arity returns the
+number of actual arguments.
+Note; As default arguments are not a part of a function type (8.3.6), these will
+always be 'ignored', in terms of std::arity.
+Note; For member functions, this will return the actual number of arguments, 
+that is without the implicit object parameter, as this is handled seperately by
+the traits; 'is\_member\_function', and 'implicit\_object\_type'.
+
+\subsubsection{Has Varying Arguments}
+Return whether or not the callable type, accepts a varying number of arguments
+(e.g. C style variadics, void func(...)).
+\begin{verbatim}
+template <typename Callable, typename... Args>
+constexpr bool has_varying_arguments = ...;
+\end{verbatim}
+Note; Has nothing to do with variadic templates.
+
+\subsubsection{Is function pointer}
+Return whether the callable type is a function pointer.
+\begin{verbatim}
+template<typename Callable>
+constexpr bool is_function_pointer = ...;
+\end{verbatim}
+
+\subsubsection{Is const function}
+Return whether the given member function, is declared const.
+\begin{verbatim}
+template <typename Callable, typename... Args>
+constexpr bool is_const_function = ...;
+\end{verbatim}
+Note; Only ever non-false for non-static member functions.
+
+\subsubsection{Is member function}
+Return whether the given callable type, is a member function.
+\begin{verbatim}
+template<typename Callable, typename... Args>
+constexpr bool is_member_function = ...;
+\end{verbatim}
+Note; This currently returns false for static functions, as we're not able to
+disambiguate static functions from free functions.
+The only way to disambiguate would be a compiler supported solution.
+
+\subsubsection{Is static or free function}
+Return whether the given callable type, is a static or free function.
+\begin{verbatim}
+template<typename Callable, typename... Args>
+constexpr bool is_static_member_or_free_function = ...;
+\end{verbatim}
+Note; See note in 'Is member function'. - Currently returns the complete
+opposite of is\_member\_function
+
+\subsubsection{Implicit object type}
+Return the type of the implicit object parameter for a given member function.
+\begin{verbatim}
+template<typename Callable, typename... Args>
+using implicit_object_type = ...;
+\end{verbatim}
+Note; This is only defined for callable's returning true for;
+'Is member function'
+
+\subsubsection{Parameter type}
+Return the type of the i'th parameter for a given callable type.
+\begin{verbatim}
+template<int I, typename Callable, typename... Args>
+using parameter_type = ...;
+\end{verbatim}
+Note; Is only defined for; $0 < I < std::arity<Callable>$.
+TODO; Figure if it's possible in a pure library solution, to retain qualifiers. 
+
+\subsubsection{Return type}
+Return the return type for a given callable type.
+\begin{verbatim}
+template<typename Callable, typename... Args>
+using return_type = ...;
+\end{verbatim}
+
+\subsection{Usage}
+The above traits can be used, in a few ways;
+\subsubsection{Functions}
+Using decltype(...), for declared functions;
+\begin{verbatim}
+void function(int, double);
+std::return_type<decltype(function)> // void
+std::parameter_type<0, decltype(function)> // int
+\end{verbatim}
+Using decltype(\&...), for declared functions;
+\begin{verbatim}
+void function(int, double);
+std::return_type<decltype(&function)> // void
+std::parameter_type<0, decltype(&function)> // int
+\end{verbatim}
+
+Using template specifiction, for non-declared functions;
+(which the above case, maps down to after decltype)
+\begin{verbatim}
+std::arity<void(...)> // 0
+std::has_varying_arguments<void(...)> // true
+\end{verbatim}
+
+\subsubsection{Functors}
+Passing functor types directly;
+\begin{verbatim}
+struct functor
+{
+    void operator()(int);
+};
+std::return_type<functor> // void
+std::implicit_object_type<functor> // functor
+\end{verbatim}
+Passing functor types directly, but specifying the overload;
+\begin{verbatim}
+struct variadic_template_functor
+{
+    template <typename... Ts>
+    void operator()(Ts..., ...);
+};
+std::arity<variadic_template_functor, int, double> // 2
+std::has_varying_arguments<variadic_template_functor, int, double> // true
+std::parameter_type<1, variadic_template_functor, int, double> // double
+\end{verbatim}
+
+\subsubsection{Member functions}
+All class methods, are essencially function pointers, and hence will be called
+the same way, just with a prefix;
+\begin{verbatim}
+struct klass
+{
+    void function(int);
+    void const_function(int) const;
+    static void static_function(int);
+};
+std::is_member_function<decltype(&klass::function)> // true
+std::is_const_function<decltype(&klass::const_function)> // true
+std::is_static_member_or_free_function<decltype(&klass::static_function)> // true
+\end{verbatim}
+Do note however, that for member functions (e.g. non-static functions defined on
+the class), we need the '\&', while it can be left out for static functions;
+\begin{verbatim}
+std::is_static_member_or_free_function<decltype(klass::static_function)> // true
+\end{verbatim}
+The reason for why static functions are treated differently, is because these
+are essentially free functions, and hence subject to the C rules for functions
+and function pointers. 
+
+Note; Templated and overloaded methods, are handled by explicitly specifying the
+overload.
+
+\subsubsection{Lambdas}
+Lambdas are essentially functors, and hence behave as these, however as lambdas
+are constructed as objects of an anonymous type, we'll need decltype(...) to get
+the underlaying type.
+\begin{verbatim}
+const auto lambda = [](int i){ return i; };
+std::is_member_function<decltype(lambda)> // true
+std::is_const_function<decltype(lambda)> // true
+\end{verbatim}
+Note; C++14 Polymorphic lambdas will be supported by means of explicitly specifying the
+overload.
+
+\subsubsection{Type overloading 'operator()'}
+For all other types, which overload the call operator, we have behavior as in
+the functor case. For instance with std::function;
+\begin{verbatim}
+std::is_member_function<std::function<int(int)>> // true
+std::is_same<std::return_type<std::function<int(int)>> // int
+std::is_same<std::parameter_type<0, std::function<int(int)>> // int
+\end{verbatim}
+
+\subsection{Implementatation}
+The proposal is concerned with the interface only, and hence compiler and
+standard library vendors are free to do their implementation in any way they'd
+like, be it compiler argumented or a pure library solution.
+
+A pure library implementation has been developed, and is available at;
+\href{}{SourceForge}
+TODO: INSERT LINK
+
+Note; This implementation currently makes use of a few C++1y features, however
+the library can be implemented without these.
