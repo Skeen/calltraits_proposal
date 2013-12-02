@@ -1,0 +1,68 @@
+\documentclass[english, 12pt, a4paper]{article}
+
+%packages
+%\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm]{geometry}
+\usepackage{a4wide}
+
+\usepackage[pdftex]{graphicx}
+\usepackage{verbatim} 
+\usepackage{ulem}
+\usepackage{hyperref}
+
+\usepackage[english]{babel}
+\usepackage{t1enc}
+
+%declare where to look for graphics
+\graphicspath{{gfx/}}
+
+%wrapper til images (align along tekst)
+\usepackage{wrapfig}
+
+%Ekstra Packages (copied from example_proofs.tex by Freek) - added by sbr
+\usepackage{amsmath,amssymb} 	 % American Mathematical Society has produced several packages for use with LaTeX
+\renewcommand{\leq}{\leqslant}     % make <= look nicer
+\renewcommand{\geq}{\geqslant}     % make >= look nicer
+% Italic theta and omega
+\let\OldTheta\Theta
+\renewcommand{\Theta}{\varTheta}
+\let\OldOmega\Omega
+\renewcommand{\Omega}{\varOmega}
+
+\usepackage{datetime}
+
+% Til linieret kodeeksempler:
+% The moreverb package extends the verbatim package, providing a listing environment and a \listinginput command, which
+% line-number the text of the file. The package also has a \verbatimtabinput command, that honours TAB characters in the % input (the package’s listing environment and the \listinginput command also both honour TAB).
+\usepackage{isodate}
+\isodate
+
+\renewcommand{\thesection}{\Roman{section}} 
+\renewcommand{\thesubsection}{\thesection.\Roman{subsection}}
+
+\begin{document}
+
+\title{Dnnnn=yy-nnnn\vspace{-1ex}}
+\author{Emil Madsen}
+\date{\vspace{-5ex}}
+
+\maketitle
+\hrule
+
+\begin{center}
+\begin{tabular}{ll}
+  Doc No:   & Dnnnn=yy-nnnn   \\
+  Revision: & 1.1             \\
+  Date:     & \today          \\
+  Project:  & Programming Language C++, Library Evolution Working Group \\
+  Author:   & Emil Madsen     \\
+  Reply to: & Emil Madsen     \\
+            & Email: skeen@cs.au.dk
+\end{tabular}
+\end{center}
+
+%include everything
+\input{Opgave} 
+
+% that's all folks
+\end{document}
+
