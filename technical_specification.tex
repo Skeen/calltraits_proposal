@@ -1,18 +1,22 @@
 \subsection{Interface}
 I'm open to adding more traits to the interface, assuming they are implementable
 in a pure library solution.
-
+\newline
+Note, all implementations are denotated with \verb|...|, as they are
+implementation specific. For a fill in, download the library referenced in
+'Implementatation' sub-section.
 \subsubsection{Arity}
+Arity is the measure for the number of arguments a given function takes.
 \begin{itemize}
 \item[(1)] Return the arity (e.g. number of arguments) for a given callable type.
 \item[(2)] Return whether the callable type has the queried number of arguments.
 \end{itemize}
 \begin{verbatim}
-// 1
+// (1)
 template<typename Callable, typename... Args>
 constexpr size_t arity = ...;
 
-// 2
+// (2)
 template <typename Callable, typename... Args>
 constexpr bool is_nullary = (arity<Callable, Args...> == 0);
 template <typename Callable, typename... Args>
@@ -22,17 +26,19 @@ constexpr bool is_binary = (arity<Callable, Args...> == 2);
 template <typename Callable, typename... Args>
 constexpr bool is_ternary = (arity<Callable, Args...> == 3);
 \end{verbatim}
-Note; In the case of varying arguments (C-style ellipsis), std::arity returns the
+Note; In the case of varying arguments (C-style ellipsis), \verb|std::arity| returns the
 number of actual arguments.
+\newline
 Note; As default arguments are not a part of a function type (8.3.6), these will
-always be 'ignored', in terms of std::arity.
+always be 'ignored', in terms of \verb|std::arity|.
+\newline
 Note; For member functions, this will return the actual number of arguments, 
 that is without the implicit object parameter, as this is handled seperately by
-the traits; 'is\_member\_function', and 'implicit\_object\_type'.
+the traits; \verb|is_member_function|, and \verb|implicit_object_type|.
 
 \subsubsection{Has Varying Arguments}
 Return whether or not the callable type, accepts a varying number of arguments
-(e.g. C style variadics, void func(...)).
+(e.g. C style variadics, \verb|void func(...)|).
 \begin{verbatim}
 template <typename Callable, typename... Args>
 constexpr bool has_varying_arguments = ...;
@@ -71,7 +77,7 @@ template<typename Callable, typename... Args>
 constexpr bool is_static_member_or_free_function = ...;
 \end{verbatim}
 Note; See note in 'Is member function'. - Currently returns the complete
-opposite of is\_member\_function
+opposite of \verb|is_member_function|.
 
 \subsubsection{Implicit object type}
 Return the type of the implicit object parameter for a given member function.
@@ -88,7 +94,8 @@ Return the type of the i'th parameter for a given callable type.
 template<int I, typename Callable, typename... Args>
 using parameter_type = ...;
 \end{verbatim}
-Note; Is only defined for; $0 < I < std::arity<Callable>$.
+Note; Is only defined for; $0 < I < \verb|std::arity<Callable>|$.
+\newline
 TODO; Figure if it's possible in a pure library solution, to retain qualifiers. 
 
 \subsubsection{Return type}
@@ -101,19 +108,18 @@ using return_type = ...;
 \subsection{Usage}
 The above traits can be used, in a few ways;
 \subsubsection{Functions}
-Using decltype(...), for declared functions;
+Using \verb|decltype(...)|, for declared functions;
 \begin{verbatim}
 void function(int, double);
 std::return_type<decltype(function)> // void
 std::parameter_type<0, decltype(function)> // int
 \end{verbatim}
-Using decltype(\&...), for declared functions;
+Using \verb|decltype(&...)|, for declared functions;
 \begin{verbatim}
 void function(int, double);
 std::return_type<decltype(&function)> // void
 std::parameter_type<0, decltype(&function)> // int
 \end{verbatim}
-
 Using template specifiction, for non-declared functions;
 (which the above case, maps down to after decltype)
 \begin{verbatim}
@@ -158,7 +164,7 @@ std::is_const_function<decltype(&klass::const_function)> // true
 std::is_static_member_or_free_function<decltype(&klass::static_function)> // true
 \end{verbatim}
 Do note however, that for member functions (e.g. non-static functions defined on
-the class), we need the '\&', while it can be left out for static functions;
+the class), we need the '\verb|&|', while it can be left out for static functions;
 \begin{verbatim}
 std::is_static_member_or_free_function<decltype(klass::static_function)> // true
 \end{verbatim}
@@ -171,8 +177,8 @@ overload.
 
 \subsubsection{Lambdas}
 Lambdas are essentially functors, and hence behave as these, however as lambdas
-are constructed as objects of an anonymous type, we'll need decltype(...) to get
-the underlaying type.
+are constructed as objects of an anonymous type, we'll need \verb|decltype(...)|
+to get the underlaying type.
 \begin{verbatim}
 const auto lambda = [](int i){ return i; };
 std::is_member_function<decltype(lambda)> // true
@@ -181,9 +187,9 @@ std::is_const_function<decltype(lambda)> // true
 Note; C++14 Polymorphic lambdas will be supported by means of explicitly specifying the
 overload.
 
-\subsubsection{Type overloading 'operator()'}
-For all other types, which overload the call operator, we have behavior as in
-the functor case. For instance with std::function;
+\subsubsection{Type overloading the call operator}
+For all other types, which overload the call operator (\verb|operator()|), we have
+behavior as in the functor case. For instance with std::function;
 \begin{verbatim}
 std::is_member_function<std::function<int(int)>> // true
 std::is_same<std::return_type<std::function<int(int)>> // int
@@ -196,8 +202,11 @@ standard library vendors are free to do their implementation in any way they'd
 like, be it compiler argumented or a pure library solution.
 
 A pure library implementation has been developed, and is available at;
-\href{}{SourceForge}
-TODO: INSERT LINK
-
+\begin{itemize}
+\item \href{https://sourceforge.net/p/calltraits/code/ci/default/tree/code/combined/}
+    {SourceForge Repository Link (may be updated since paper release)}
+\item \href{http://sourceforge.net/code-snapshots/hg/c/ca/calltraits/code/calltraits-code-b1755248eaf854ea9cd0ef054cfb157de1b09daf.zip}
+    {Download Code as Zip (always refers to the paper release)}
+\end{itemize}
 Note; This implementation currently makes use of a few C++1y features, however
 the library can be implemented without these.
