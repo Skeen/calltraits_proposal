@@ -5,8 +5,12 @@
 
 namespace std
 {
-    template<typename Callable, typename... Args>
-    constexpr bool is_const_function = internal_worker::call_helper<Callable, Args...>::const_function;
+    template <typename Callable, typename... Args>
+    struct is_const_function
+        : std::integral_constant<bool,
+            internal_worker::call_helper<Callable, Args...>::const_function>
+    {
+    };
 }
 
 #endif //__STD_HAS_VARYING_ARGUMENTS_HPP

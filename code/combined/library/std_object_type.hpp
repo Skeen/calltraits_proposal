@@ -12,7 +12,7 @@ namespace std
         struct implicit_object_type_worker
         {
             // Assert that the requested index
-            static_assert(is_member_function_integral<Callable, Args...>::value == true, "Unable to get implicit_object_type on a non member function");
+            static_assert(is_member_function<Callable, Args...>::value == true, "Unable to get implicit_object_type on a non member function");
 
             using object_type = typename internal_worker::call_helper<Callable, Args...>::object_type;
         };

@@ -65,12 +65,9 @@ namespace std
     }
     
     template<typename Callable>
-    struct is_function_pointer_integral : std::integral_constant<bool, internal_worker::is_function_pointer<Callable>::callable>
+    struct is_function_pointer : std::integral_constant<bool, internal_worker::is_function_pointer<Callable>::callable>
     {
     };
-
-    template<typename Callable>
-    constexpr bool is_function_pointer = internal_worker::is_function_pointer<Callable>::callable;
 
     template<typename Callable>
     struct assert_is_function_pointer
