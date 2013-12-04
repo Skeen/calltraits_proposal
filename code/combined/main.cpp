@@ -49,7 +49,7 @@ using converted_std_function_type =
     typename converted_std_function_type_worker<Callable, Args...>::
         template internal_struct<
             size_t, std::make_integer_sequence<
-                        size_t, std::arity_integral<
+                        size_t, std::arity<
                                     Callable, Args...>::value>>::std_function;
 
 template <typename Callable, typename... Args>

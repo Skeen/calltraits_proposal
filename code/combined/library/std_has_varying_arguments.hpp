@@ -5,8 +5,12 @@
 
 namespace std
 {
-    template<typename Callable, typename... Args>
-    constexpr bool has_varying_arguments = internal_worker::call_helper<Callable, Args...>::varying;
+    template <typename Callable, typename... Args>
+    struct has_varying_arguments
+        : std::integral_constant<
+              bool, internal_worker::call_helper<Callable, Args...>::varying>
+    {
+    };
 }
 
 #endif //__STD_HAS_VARYING_ARGUMENTS_HPP

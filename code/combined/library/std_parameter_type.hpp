@@ -11,7 +11,7 @@ namespace std
         struct parameter_type_worker
         {
             // Assert that the requested index
-            static_assert(N >= 0 && N < std::arity_integral<Callable, Args...>::value, "Parameter index, out-of-range");
+            static_assert(N >= 0 && N < std::arity<Callable, Args...>::value, "Parameter index, out-of-range");
 
             using type = typename internal_worker::call_helper<Callable, Args...>::template arg<N>;
         };
