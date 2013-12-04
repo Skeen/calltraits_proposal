@@ -1,10 +1,15 @@
+Compile-time reflection capabilities are one of the cornerstones of C++ template
+meta-programming. TR1 brought us the \verb|<type_traits>| header, and thereby
+provided us with a way to query information about types, and their relationships.
+
 This proposal aims to add support for compile-time retrieval of return-type,
 arity, parameter types, and such for various callable types; e.g. function
 pointers (free, static, and non-static), functors and lambdas. In general
 everything implementing the call operator.
 
-The proposed interface is a trait inspired one, a listing of the proposed
-traits can be found in the technical specification.
+That is a way to query information about callable types.
+
+The proposed interface is inspired from the \verb|<type_traits>| header, a
+listing of the proposed traits can be found in the technical specification.
 
 A simple usage example can be found in the motivation section.
-

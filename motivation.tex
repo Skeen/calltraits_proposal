@@ -1,0 +1,77 @@
+Generic programming (decoupling of algorithm and type) has become the
+recommended way for providing reusable code.
+
+However, there are times, in which we cannot provide a truly generic solution,
+and where we are forced to take type information into account, and hence we
+need a generic way to query information about the instantiated type(s).
+
+This is where traits come into play, traits provide us with a way to have type
+specific information in a generic context. This is currently available for types
+using the \verb|<type_traits>| header, however no similiar solution currently
+exists for callable types.
+
+The motivation for this proposal is to 'correct' this, by provide what the 
+\verb|<type_traits>| header does for types, but for callable types.
+
+Currently, when taking a callable type, by an unrestricted template, or when
+storing it using the auto keyword, one looses absolutely all information about
+the type, that is we're in an unknown state, about the callable type, and
+there's currently no standard way for querying any of this information, if one
+needs to.
+
+Being able to query this kind of information, at compile-time will allow one
+to generate definitions, and to support generic code, with type specific
+behavior.
+
+A pratictal toy example of this would be the following;
+\begin{verbatim}
+<code>
+template <typename Callable, typename... Args>
+struct converted_std_function_type_worker
+{
+    template <typename, typename>
+    struct internal_struct;
+
+    template <typename T, T... S>
+    struct internal_struct<T, std::integer_sequence<T, S...>>
+    {
+        using std_function =
+            std::function<typename std::return_type<Callable, Args...>(
+                typename std::parameter_type<S, Callable, Args...>...)>;
+    };
+};
+
+template <typename Callable, typename... Args>
+using converted_std_function_type =
+    typename converted_std_function_type_worker<Callable, Args...>::
+        template internal_struct<size_t,
+            std::make_integer_sequence<size_t,
+                std::arity_integral<Callable, Args...>::value>>::
+                    std_function;
+
+template <typename Callable, typename... Args>
+auto make_stdfunction(Callable c, Args... args)
+    -> converted_std_function_type<Callable, Args...>
+{ return c; }
+</code>
+\end{verbatim}
+Note: \verb|std::integer_sequence<T, S...>| and friends refer to the concepts from
+\href{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3493.html}{N3493}.
+\noindent
+The above code allows one to convert any callable type to a std::function, by
+extracting the required template information from the callable type at compile time.
+
+Usage code may look like;
+\begin{verbatim}
+<code>
+auto func = make_stdfunction(&function);
+static_assert(std::is_same<decltype(func),
+              std::function<int(int)>>::value, "");
+
+auto lambda = make_stdfunction([](int){ return 'C'; });
+static_assert(std::is_same<decltype(lambda),
+              std::function<char(int)>>::value, "");
+</code>
+\end{verbatim}
+The above is of course just a simple toy example, for the purpose of this text.
+Plenty of other, possibly more useful examples can be thought up. 

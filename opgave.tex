@@ -4,98 +4,28 @@
 
 \section{Introduction}
 \input{introduction}
-%% TODO: MOORE
 
 \section{Motivation}
-Note: This following discussion on lambdas also applies to ordinary functions
-and methods.
-\newline\newline
-When passing lambdas as function arguments or saving them to variables, one can either;
-\begin{itemize}
-\item Pass/Save the lambda as a function pointer, assuming it's capture-less.
-\item Pass/Save the lambda as a std::function (when wrapped), or
-\item Pass the lambda as a templated type / Save it using the auto keyword.
-\end{itemize}
-The main point of the above, is that; in order to do one of the two first,
-one has to explicitly specify the exact type of the lambda.
-While the last option saves us from doing this (which may be preferable).
-
-However using the last method, leaves us in a somewhat unknown state, as to what
-the return-type, and parameter(s) for the lambda is. That is, currently there's
-no standard way of querying this information from the lambda variable itself /
-template parameter. Do please note that the same applies to functions bind via
-unrestricted templates or the auto keyword.
-
-Being able to statically determine attributes of templated and auto saved
-lambdas at compile-time, will allow one to generate definitions, and generic
-code based upon these.
-
-In essence, this means that one can write generic code, while having template
-specific behavior, so the issue being solved by this proposal is alike any other
-issue, where traits is proposed as the solution. That is in the generic environment,
-where assertions and/or behavior is dependent on the template arguments.
-
-A pratictal toy example of this would be the following;
-\begin{verbatim}
-<code>
-template<typename CALLABLE>
-class std_function_convert
-{
-    private:
-        // This function doesn't need a body, as it should never be called.
-        template<typename T, T... S>
-        static auto convert_to_std_function(std::integer_sequence<T, S...>) ->
-        std::function<typename function_traits<CALLABLE>::return_type(
-            typename function_traits<CALLABLE>::template arg<S>::type...)>;
-    public:
-        using type = decltype(convert_to_std_function(typename
-            std::make_integer_sequence<size_t,
-                function_traits<CALLABLE>::arity>()));
-};
-</code>
-\end{verbatim}
-Note: `std::integer\_sequence<T, S...>` and friends refer to the concepts from
-\href{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3493.html}{N3493}.
-\noindent
-The above code allows one to convert a lambda to a std::function, by extracting the
-required template information from the lambda at compile time, and typedef'ing
-the resulting std::function inside a struct. Usage code may look like;
-\begin{verbatim}
-<code>
-auto lambda = [](int i) { return long(i*10); };
-using std_function = std_function_convert<decltype(lambda)>::type;
-
-static_assert(std::is_same<std_function, std::function<long(int)>>::value,
-              "std_function_convert is broken");
-</code>
-\end{verbatim}
-The above is of course just a simple toy example, for the purpose of this text.
-Plenty of other, possibly more useful examples can be thought up. 
-\newline
-Besides from the obvious implications and usage scenarios of this, it should
-also be added that this proposal would be an obvious fit for the type\_traits
-C++11 header. As it applies the traits solution, not to ordinary types, but to
-callable types (lambdas, function pointers and methods).
+\input{motivation}
 
 \section{Scope}
 The people who'll likely be the users of this proposed extension to the standard
-library, are generally speaking library writers and generic code developers.
+library, are generally speaking library writers and other generic code developers.
+
 Who are experienced C++ developers.
 
 \section{Impact On the Standard}
-This proposal is a pure library extension. It does not require changes to any
-standard classes, functions or headers. Except if appended to the type\_traits
-header, although a new separate header may be a great alternative, in order to
-refrain from changing the current headers.
-\noindent
-The suggested implementation depends on the integer\_sequence, as proposed in 
-\href{http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3493.html}{N3493},
-and on std::tuple. As integer\_sequence is to be included in C++14, this proposal
-may be candidate for that as well.
+This proposal can be implemented as a pure library extension, but it may be
+compiler supported as the implementation is left as a detail, and compiler and
+standard library vendors are free to implement the traits interface in any
+way they see fit.
+
+The proposal does not require changes to any standard classes, functions or headers.
+It does however introduce a new header, namely \verb|call_traits|.
 
 \section{Design Decisions}
-There has not been a lot of design decisions at this point, except naming and
-implementation, which are open to discussions obviously.
+The interface design is chosen to match the \verb|type_traits| library. As for
+naming, nothing is settled yet, as this is still a discussion paper.
 
 \section{Technical Specifications}
 \input{technical_specification}
@@ -104,4 +34,7 @@ implementation, which are open to discussions obviously.
 I'd like to thanks the following people;
 \begin{itemize}
 \item 'kennytm', for his answer on \href{http://stackoverflow.com/questions/7943525/is-it-possible-to-figure-out-the-parameter-type-and-return-type-of-a-lambda}{StackOverflow} which eventually lead me to creating this proposal.
+\item All the people who contributed to the discussion at 'std-proposals'
+      (9zafJmVT2kQ), and thereby lead me to creating the second revision
+      of this paper.
 \end{itemize}

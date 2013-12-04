@@ -129,7 +129,6 @@ namespace std
             typename std::enable_if< internal_worker::is_function_pointer<Callable>::callable>::type>
             : assert_is_function_pointer<Callable>
         {
-            
             using type = call_helper_data<Callable>;
         };
 
