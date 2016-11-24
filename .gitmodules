@@ -1,0 +1,4 @@
+[submodule "code"]
+	path = code
+	url = git@github.com:Skeen/calltraits.git
+	branch = master
